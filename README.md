@@ -497,3 +497,262 @@ The proposed system could be developed in four incremental phases.
 This phased approach would enable the project to demonstrate practical AI capabilities while maintaining clear boundaries between experimental features and operational decision-making.
 
 -------------------------------------------------------------
+
+## 8. Example Prompts and Expected Structured Outputs
+
+### 8.1 Purpose of the Examples
+
+This section demonstrates how the proposed Yes Engine would process an employee shift-swap request using prompt engineering, structured outputs, and deterministic validation.
+
+Two sample prompts are presented:
+
+1. A natural-language extraction prompt that converts an employee request into structured JSON.
+2. A reviewer-facing explanation prompt that summarizes verified scheduling results without changing the underlying compliance decision.
+
+All employee identities, scheduling records, policy references, and validation outcomes in these examples are fictionalized.
+
+These examples illustrate expected system behavior. They are not outputs of an executed or deployed Yes Engine application.
+
+-------------------------------------------------------------
+
+### 8.2 Example 1: Natural-Language Request Extraction
+
+**Scenario**
+
+An employee named Riley Morgan wants to swap a Friday morning shift with Avery Chen, who works later that day.
+
+The employee submits the following request:
+
+> "Hi! I'd like to swap my Friday, November 6, 2026, shift from 9 AM to 5 PM with Avery Chen's shift from noon to 8 PM. We already discussed and agreed to switch shifts."
+
+The application would provide the authenticated requester identifier separately from the employee's message.
+
+**Sample Prompt 1 — Structured Data Extraction**
+
+```text
+You are the scheduling request extraction component
+for Yes Engine.
+
+Your task is to extract shift-swap information from
+an employee's message into a predefined JSON schema.
+
+Rules:
+1. Extract only details explicitly provided in the
+   employee's message or trusted application context.
+2. Do not invent employee identifiers, dates, times,
+   or scheduling information.
+3. Convert dates and shift times into standardized formats.
+4. Distinguish an employee's claim of partner agreement
+   from independently verified confirmation.
+5. Use null for unknown values.
+6. Identify missing or ambiguous information.
+7. Do not approve or reject a shift-swap request.
+8. Return structured JSON only.
+
+Authenticated requester ID: EMP-001
+
+Employee message:
+"Hi! I'd like to swap my Friday, November 6, 2026,
+shift from 9 AM to 5 PM with Avery Chen's shift from
+noon to 8 PM. We already talked and agreed to switch."
+```
+
+**Expected Structured JSON Output**
+
+```json
+{
+  "requester_id": "EMP-001",
+  "swap_partner_name": "Avery Chen",
+  "swap_partner_id": null,
+  "requested_shift_date": "2026-11-06",
+  "swap_type": "single_day",
+  "requester_original_shift": {
+    "start_time": "09:00",
+    "end_time": "17:00"
+  },
+"partner_original_shift": {
+    "start_time": "12:00",
+    "end_time": "20:00"
+  },
+  "partner_agreement_claimed": true,
+  "missing_information": [],
+  "extraction_status": "complete_pending_verification"
+}
+```
+
+**Explanation**
+
+The expected output shows how the AI converts conversational text into standardized scheduling data.
+
+The requesting employee's identifier comes from trusted application context, not from the LLM guessing it.
+
+The swap partner's identifier remains null until the application verifies Avery Chen's identity against authorized scheduling records.
+
+Likewise, the employee's statement that both parties agreed would not serve as independent confirmation.
+
+Before further processing, the application would verify employee identities, current shift assignments, and the swap partner's participation.
+
+The JSON structure would be validated against a Pydantic schema before being passed to subsequent workflow stages.
+
+-------------------------------------------------------------
+
+### 8.3 Simulated Scheduling Validation
+
+After successful extraction, the application would retrieve the fictional schedule records and apply its deterministic Python validation functions.
+
+For this example, assume the simulated records confirm:
+
+- Riley Morgan and Avery Chen are assigned to the stated shifts.
+- Avery Chen has independently confirmed participation.
+- Each scheduled shift includes a 30-minute unpaid break.
+- Both employees would have 37.5 paid hours during the applicable workweek after the exchange.
+- The illustrative weekly-hours limit is 40 hours.
+- Neither employee has a conflicting shift or a violation of the configured rest requirements.
+- The applicable sample scheduling checks pass.
+
+These assumptions are provided solely to illustrate the proposed validation process and are not actual employer policies or verified production data.
+
+**Simulated Deterministic Validation Output**
+
+```json
+{
+  "request_id": "SWAP-1001",
+  "requester_id": "EMP-001",
+  "swap_partner_id": "EMP-002",
+  "schedule_records_verified": true,
+  "partner_confirmation_verified": true,
+  "projected_weekly_paid_hours": {
+    "EMP-001": 37.5,
+    "EMP-002": 37.5
+  },
+  "illustrative_weekly_hour_limit": 40,
+  "validation_checks": [
+    {
+      "rule": "shift_assignments",
+      "result": "pass"
+    },
+    {
+      "rule": "weekly_hours",
+      "result": "pass"
+    },
+    {
+      "rule": "shift_overlap",
+      "result": "pass"
+    },
+    {
+      "rule": "minimum_rest",
+      "result": "pass"
+    },
+    {
+      "rule": "partner_confirmation",
+      "result": "pass"
+    }
+  ],
+  "policy_reference": "sample-shift-swap-policy-v1",
+  "eligibility": "eligible_for_review",
+  "approved": false
+}
+```
+
+The proposed Python validation engine would generate these results from authoritative structured records and from configured rules.
+
+The LLM would neither perform the compliance calculations nor independently determine the final eligibility status.
+
+Passing validation means the request is eligible for human review, not that it has received final approval.
+
+-------------------------------------------------------------
+
+### 8.4 Example 2: Reviewer-Facing Explanation
+
+After the deterministic validation stage, the system could use the LLM to generate a readable summary for an authorized reviewer.
+
+The model would be restricted to explaining the provided validation results rather than modifying them.
+
+**Sample Prompt 2 — Decision Explanation**
+
+```text
+You are the reviewer explanation component
+for Yes Engine.
+
+Generate a concise, factual summary of the supplied
+scheduling validation results.
+
+Rules:
+1. Use only the provided validation data.
+2. Do not invent policy requirements or employee details.
+3. Do not override Python validation results.
+4. Distinguish eligibility from final approval.
+5. Identify any warnings or missing information.
+6. Make clear that human authorization is required.
+7. Return structured JSON only.
+
+Verified request: SWAP-1001
+Requester: Riley Morgan
+Swap partner: Avery Chen
+Requested date: 2026-11-06
+Shift records verified: true
+Independent partner confirmation: true
+Projected weekly paid hours: 37.5 for each employee
+Illustrative weekly-hours limit: 40
+Shift overlap check: pass
+Minimum rest check: pass
+All configured checks: pass
+Eligibility: eligible_for_review
+Human approval: pending
+```
+
+**Expected Reviewer-Facing JSON Output**
+
+```json
+{
+  "request_id": "SWAP-1001",
+  "eligibility": "eligible_for_review",
+  "review_status": "pending_human_approval",
+  "summary": "The proposed shift exchange between Riley Morgan and Avery Chen passed the supplied scheduling validation checks.",
+  "validation_explanation": [
+    "Both employees' shift assignments were verified.",
+    "Independent confirmation from the swap partner was recorded.",
+    "Each employee would have 37.5 paid hours for the applicable workweek.",
+    "The proposed exchange passed the configured overlap and rest-period checks."
+  ],
+  "warnings": [],
+  "human_approval_required": true,
+  "approved": false,
+  "schedule_updated": false
+}
+```
+
+-------------------------------------------------------------
+
+### 8.5 Handling Incomplete or Ambiguous Requests
+
+Not every shift-swap request would contain enough information for immediate processing.
+
+For example:
+
+> "Can I swap with Alex next Friday?"
+
+This request neither uniquely identifies the swap partner nor specifies the shifts involved.
+
+The proposed system should seek clarification rather than guess.
+
+Depending on the available verified context, it might prompt the employee to confirm the relevant date, identify the correct coworker, and specify the original and proposed shifts.
+
+The request would remain incomplete until the necessary information had been obtained and validated.
+
+The application would not consider an incomplete request eligible for approval.
+
+-------------------------------------------------------------
+
+### 8.6 Expected Benefits of Structured Outputs
+
+These examples illustrate several benefits of combining LLMs with structured schemas and deterministic validation:
+
+- **Consistency:** Shift-swap information follows a standardized data structure.
+- **Reduced ambiguity:** Missing details can be identified before processing.
+- **Reliability:** Python calculations and approved rules determine compliance.
+- **Traceability:** Validation results can be linked to their source records and policy references.
+- **Human oversight:** The AI generates decision-support information without authorizing schedule changes.
+- **Integration readiness:** Structured records can support future APIs, reporting, and spreadsheet exports.
+
+This design applies the prompt-engineering, structured-output, chaining, and human-in-the-loop principles explored throughout the Springboard AI for Programmers program.
