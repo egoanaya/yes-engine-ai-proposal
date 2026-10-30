@@ -334,6 +334,15 @@ The OpenAI API would identify information such as the requester, the proposed sw
 
 A Pydantic model would define the expected schema, including the following fields:
 
+- Requesting employee identifier
+- Swap partner identifier
+- Requested date or date range
+- Original shift assignment
+- Proposed replacement shift
+- Swap type: single-day or full-week
+- Partner agreement status
+- Missing or ambiguous information
+
 The model would extract only information supported by the request or authorized scheduling records.
 
 The system would verify employee identities and shift assignments against structured records rather than assuming them from the AI response.
