@@ -570,7 +570,7 @@ noon to 8 PM. We already talked and agreed to switch."
     "start_time": "09:00",
     "end_time": "17:00"
   },
-"partner_original_shift": {
+  "partner_original_shift": {
     "start_time": "12:00",
     "end_time": "20:00"
   },
