@@ -756,3 +756,254 @@ These examples illustrate several benefits of combining LLMs with structured sch
 - **Integration readiness:** Structured records can support future APIs, reporting, and spreadsheet exports.
 
 This design applies the prompt-engineering, structured-output, chaining, and human-in-the-loop principles explored throughout the Springboard AI for Programmers program.
+
+-------------------------------------------------------------
+
+## 9. Evaluation Strategy and Success Metrics
+
+### 9.1 Evaluation Overview
+
+The proposed Yes Engine would require a comprehensive evaluation strategy before it is considered for operational deployment.
+
+The evaluation process would assess the accuracy of AI-generated structured outputs, the reliability of deterministic scheduling validation, the relevance of retrieved policy information, and the effectiveness of human-in-the-loop controls.
+
+Because shift-swap decisions can affect employee schedules, staffing coverage, and policy compliance, evaluation would prioritize reliability and safety over response speed or automation volume.
+
+The proposed evaluation framework builds on the dataset-based testing, LLM evaluation, and LangSmith observability concepts covered in Week 4 of the Springboard AI for Programmers program.
+
+This section outlines a proposed testing methodology and preliminary acceptance criteria. No performance results are claimed because Yes Engine has not yet been implemented or evaluated as a functioning application.
+
+-------------------------------------------------------------
+
+### 9.2 Evaluation Dataset and Ground Truth
+
+The initial evaluation dataset would include fictional employee schedules, synthetic shift-swap requests, and illustrative scheduling policies.
+
+A preliminary dataset could include approximately 60 scenarios, including routine requests and challenging edge cases.
+
+Examples would include:
+
+- Valid single-day shift exchanges.
+- Valid full-week shift exchanges.
+- Requests with missing dates or shift times.
+- Requests involving ambiguous employee names.
+- Shift exchanges that exceed configured weekly-hour limits.
+- Requests creating overlapping shift assignments.
+- Exchanges violating configured minimum rest periods.
+- Requests lacking independent partner confirmation.
+- Requests involving outdated or conflicting policy references.
+- Requests submitted outside an illustrative authorized window.
+
+Approximately 40 scenarios could support initial development and prompt refinement, while 20 separately maintained scenarios could serve as a held-out evaluation set.
+
+The held-out set would remain unchanged throughout prompt development to provide a more meaningful assessment of generalization.
+
+Each scenario would include an expected structured extraction, relevant scheduling data, applicable policy rules, expected validation results, and an expected workflow outcome.
+
+Qualified Workforce Management subject matter experts would be responsible for reviewing and approving the ground-truth examples before any operational deployment.
+
+For the initial proposal, expected outcomes would be based solely on clearly documented fictional rules.
+
+-------------------------------------------------------------
+
+### 9.3 Structured Data Extraction Evaluation
+
+The first evaluation category would measure how accurately the LLM converts natural-language requests into structured JSON format.
+
+The evaluation would compare the extracted fields with the expected values in the test dataset.
+
+Important fields would include:
+
+- Requesting employee identifier.
+- Swap partner name or identifier.
+- Requested shift date.
+- Original and proposed shift times.
+- Swap type.
+- Claimed partner agreement.
+- Missing or ambiguous information.
+
+The evaluation would measure:
+
+**Field-Level Extraction Accuracy**
+
+The percentage of evaluated fields that match their expected values.
+
+Formula:
+
+Field Accuracy = Correctly Extracted Fields / Total Evaluated Fields × 100
+
+**Schema Validation Success Rate**
+
+The percentage of extraction responses that satisfy the required Pydantic schema.
+
+**Missing Information Detection Rate**
+
+The percentage of intentionally incomplete requests correctly identified as requiring clarification.
+
+**Unsupported Information Rate**
+
+The percentage of evaluated outputs that include invented employee identifiers, shift assignments, or other information not supported by the input or trusted context.
+
+The evaluation would distinguish formatting errors from factual extraction errors. A JSON object could be syntactically valid yet contain incorrect scheduling information.
+
+-------------------------------------------------------------
+
+### 9.4 Deterministic Scheduling Validation Evaluation
+
+The Python validation engine would be tested independently of the LLM.
+
+Unit tests would provide predefined scheduling records and compare the engine's results against expected outcomes.
+
+The tests would cover typical scenarios, boundary conditions, and combinations of conflicting constraints.
+
+Examples include:
+
+| Test Scenario | Expected Result |
+|---|---|
+| Valid swap with verified agreement and all checks passing | Eligible for human review |
+| Projected weekly hours exceed the configured limit | Block or flag as ineligible |
+| Swap creates overlapping shifts | Block or flag as ineligible |
+| Required rest period is violated | Block or flag as ineligible |
+| Partner confirmation is missing | Hold pending verification |
+| Employee identity cannot be verified | Hold pending clarification |
+| Required scheduling records are unavailable | Escalate for manual review |
+| A reviewer changes the proposed shift | Revalidate the modified request |
+
+The engine would use approved rule configurations and explicit Python-based calculations.
+
+It would not rely on LLM-generated judgments to determine whether a mandatory scheduling constraint had been met.
+
+The primary safety metric would be the policy violation rate for requests that receive final approval.
+
+**Policy Violation Rate on Approved Requests**
+
+Formula:
+
+Policy Violation Rate = Approved Requests Violating a Mandatory Rule / Total Approved Requests × 100
+
+For a system intended to support scheduling compliance, the proposed acceptance target would be zero known policy violations across approved test requests.
+
+This result would need to be verified against the approved ground-truth cases. A zero-violation result on a limited test set would not prove that the system is free of all possible failures.
+
+If no requests are approved during a test run, this metric would be reported as not applicable rather than as zero.
+
+-------------------------------------------------------------
+
+### 9.5 RAG and Policy Retrieval Evaluation
+
+The proposed RAG component would be evaluated to determine whether it retrieves the correct scheduling policies and provides relevant supporting context.
+
+Test cases would include questions on scheduling constraints, submission requirements, shift eligibility, and policy exceptions.
+
+Key evaluation criteria would include:
+
+**Retrieval Relevance**
+
+Whether the retrieved document passages address the scheduling question under evaluation.
+
+**Policy Version Accuracy**
+
+Whether the system identifies the applicable approved policy version and effective date.
+
+**Citation Accuracy**
+
+Whether the explanation cites the correct supporting document or policy section.
+
+**Unsupported Policy Claims**
+
+Whether the generated explanation introduces requirements that are not present in the retrieved authoritative sources.
+
+**Missing Policy Handling**
+
+Whether the system correctly escalates requests when required policies are missing, outdated, or contradictory.
+
+The evaluation dataset would include expected policy references so retrieval results could be compared with a documented ground truth.
+
+Incorrect retrieval would not automatically authorize a scheduling decision because the deterministic validation engine would continue to rely on separately approved rule configurations.
+
+-------------------------------------------------------------
+
+### 9.6 Human-in-the-Loop Evaluation
+
+The human review stage would be evaluated to ensure that the system does not finalize scheduling changes without the required authorization.
+
+Test cases would verify that:
+
+- Requests remain pending until an authorized reviewer acts.
+- Unauthorized users cannot approve requests.
+- Mandatory validation failures cannot be silently overridden.
+- Reviewer corrections trigger the necessary revalidation.
+- Rejected requests are not recorded as approved.
+- Approval decisions and relevant timestamps are recorded.
+- System errors do not bypass the human approval checkpoint.
+
+The central human-oversight metric would be the percentage of finalized requests with a valid, authorized approval record.
+
+The proposed target would be 100%.
+
+Any failure that allows an unauthorized or unvalidated schedule change would be classified as a critical defect requiring correction before deployment.
+
+-------------------------------------------------------------
+
+### 9.7 Proposed Evaluation Metrics and Acceptance Targets
+
+The following targets are preliminary design goals, not measured system results.
+
+| Evaluation Metric | Proposed Target | Priority |
+|---|---|---|
+| Field-level extraction accuracy | At least 95% | High |
+| Pydantic schema validation success after controlled processing | 100% for records accepted into the workflow | High |
+| Missing information detection | At least 95% | High |
+| Unsupported or invented critical scheduling details | 0 accepted without verification | Critical |
+| Mandatory-rule violations among approved test requests | 0% | Critical |
+| Unauthorized final approvals | 0 | Critical |
+| Revalidation after compliance-relevant corrections | 100% | Critical |
+| Relevant policy retrieval | At least 90% on the evaluation dataset | High |
+| Human approval records for finalized requests | 100% | Critical |
+
+These thresholds would require review and adjustment by technical and operational stakeholders prior to production use.
+
+An evaluation report would include the number of test cases, observed results, error examples, and limitations, rather than presenting target values as achieved performance.
+
+Meeting an aggregate accuracy target would not compensate for failures related to mandatory scheduling constraints or authorization.
+
+-------------------------------------------------------------
+
+### 9.8 Evaluation Workflow and Continuous Improvement
+
+The proposed evaluation process would follow a repeatable sequence:
+
+1. Prepare synthetic evaluation examples and expected outcomes.
+2. Validate the ground-truth examples against documented sample rules.
+3. Execute AI extraction and policy retrieval tests.
+4. Run independent Python scheduling validation tests.
+5. Test human approval and exception-handling safeguards.
+6. Compare observed outputs with expected results.
+7. Record failures, disagreements, and unexpected behavior.
+8. Refine prompts, data schemas, or application logic as appropriate.
+9. Rerun regression tests following each significant change.
+10. Document the final evaluation results and remaining limitations.
+
+LangSmith could organize evaluation datasets, inspect traces, compare prompt versions, and investigate incorrect outputs.
+
+A separate set of deterministic unit tests would continue to verify the Python scheduling calculations and authorization rules.
+
+Human reviewers would examine failures requiring domain expertise, including ambiguous policies or conflicting scheduling requirements.
+
+Reviewer feedback would be incorporated into controlled development and evaluation cycles rather than automatically rewriting compliance rules.
+
+-------------------------------------------------------------
+
+### 9.9 Evaluation Limitations
+
+The initial synthetic dataset would not fully capture the complexity of a real Workforce Management environment.
+
+Actual operational conditions could introduce additional factors, such as unexpected staffing changes, contractual restrictions, policy updates, cross-week scheduling calculations, and unusual employee availability patterns.
+
+A relatively small test dataset could identify common failures but would not be sufficient to demonstrate production-level reliability.
+
+Before any real deployment, the system would require a larger representative evaluation set, stakeholder-approved ground truth, security testing, controlled pilot testing, and ongoing monitoring.
+
+The overall evaluation strategy would therefore emphasize a gradual progression from simulated testing to carefully controlled operational validation, while preserving human accountability throughout the process.
+
+-------------------------------------------------------------
