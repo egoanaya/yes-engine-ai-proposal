@@ -1007,3 +1007,261 @@ Before any real deployment, the system would require a larger representative eva
 The overall evaluation strategy would therefore emphasize a gradual progression from simulated testing to carefully controlled operational validation, while preserving human accountability throughout the process.
 
 -------------------------------------------------------------
+
+## 10. Observability and Monitoring
+
+### 10.1 Observability Overview
+
+The proposed Yes Engine would incorporate observability practices to help developers and authorized operational stakeholders understand how the system handles shift-swap requests.
+
+Observability would be especially important because the application combines probabilistic AI components with deterministic scheduling calculations and human approval decisions.
+
+The primary objectives would be to:
+
+- Track requests as they move through the workflow.
+- Identify failed or incomplete processing stages.
+- Investigate incorrect AI extractions and policy retrieval results.
+- Monitor scheduling validation outcomes.
+- Verify that required human approval checkpoints are respected.
+- Measure latency, reliability, and operational performance.
+- Support troubleshooting, regression testing, and continuous improvement.
+
+The proposed observability design builds on the LangSmith tracing and RAG observability concepts covered in Week 4 of the Springboard AI for Programmers program.
+
+The capabilities described below outline a future implementation plan, not an existing monitoring deployment.
+
+-------------------------------------------------------------
+
+### 10.2 Request Tracing
+
+Each shift-swap request would be assigned a unique identifier.
+
+This identifier would enable authorized developers to associate related application events without relying on employee names or other sensitive information.
+
+A request trace would record progression through the following stages:
+
+1. Request intake.
+2. LLM-based information extraction.
+3. Pydantic schema validation.
+4. Scheduling record retrieval.
+5. Relevant policy retrieval using RAG.
+6. Deterministic Python scheduling validation.
+7. Generation of reviewer-facing explanations.
+8. Human review and authorization.
+9. Decision recording and reporting.
+
+Each stage would record diagnostic metadata, such as its processing status, duration, application version, and error category when a failure occurs.
+
+The traces would help determine which component caused a request to fail or to require additional review.
+
+For example, if a swap request cannot be processed, the trace could help distinguish among an incomplete employee message, invalid structured output, unavailable scheduling data, and a legitimate policy violation.
+
+Not every paused request would be classified as a technical error. Requests requiring clarification, partner confirmation, or authorized human review would have their own expected workflow statuses.
+
+-------------------------------------------------------------
+
+### 10.3 LangSmith Integration
+
+LangSmith would serve as a proposed observability and evaluation tool for AI processing stages.
+
+The integration could capture relevant traces for:
+
+- Natural-language extraction calls.
+- Prompt and model versions.
+- Structured output validation.
+- Policy document retrieval.
+- Generated explanations.
+- Processing errors and retries.
+- Evaluation outcomes associated with selected test examples.
+
+LangSmith traces would help developers examine how an AI response was generated and investigate differences between expected and observed outputs.
+
+For example, if an employee requests a shift exchange for November 6 but the extraction model returns November 13, the trace could help identify the input, prompt version, model response, and the schema validation outcome.
+
+Because schema validation does not guarantee factual correctness, the system would also need evaluation datasets and comparisons with trusted scheduling records.
+
+Sensitive employee information would be excluded, masked, or otherwise protected before transmission to an external observability service.
+
+Production tracing settings would require an organizational security and privacy review.
+
+The public demonstration would use only synthetic examples.
+
+-------------------------------------------------------------
+
+### 10.4 Structured Logging and Audit Records
+
+The application would distinguish between technical observability logs and operational audit records.
+
+**Technical logs** would support debugging and monitoring. They could include:
+
+- Request or correlation identifier.
+- Application component.
+- Processing stage.
+- Start and completion timestamps.
+- Execution duration.
+- Success, failure, or pending status.
+- Error category.
+- Prompt, model, or ruleset version.
+- Retry count.
+
+**Operational audit records** would support accountability for scheduling decisions. They could include:
+
+- Request identifier.
+- Verified scheduling information.
+- Relevant validation results.
+- Applicable policy version.
+- Authorized reviewer reference.
+- Approval, rejection, correction, or escalation action.
+- Decision timestamp.
+- Final request status.
+
+The two record types would be linked by a request identifier while adhering to separate access and retention controls.
+
+The system would not treat a technical success, such as receiving valid JSON, as evidence that the scheduling request was approved.
+
+-------------------------------------------------------------
+
+### 10.5 Example Observability Record
+
+The following fictional record illustrates how a processing event could be represented without including employee names or confidential scheduling details.
+
+**Illustrative Structured Log**
+
+```json
+{
+  "request_id": "SWAP-1001",
+  "trace_id": "TRACE-1001",
+  "component": "shift_validation",
+  "event": "validation_completed",
+  "status": "success",
+  "ruleset_version": "sample-policy-v1",
+  "validation_result": "eligible_for_review",
+  "mandatory_rule_violations": 0,
+  "human_approval_status": "pending",
+  "schedule_updated": false,
+  "duration_ms": 145,
+  "timestamp": "2026-11-06T14:30:00Z"
+}
+```
+
+All identifiers, values, and timestamps in this example are fictional.
+
+The `duration_ms` field represents an illustrative processing duration, not a measured result from an implemented Yes Engine application.
+
+A successful validation event would indicate only that the configured checks completed.
+
+It would not constitute permission to modify an employee's schedule.
+
+-------------------------------------------------------------
+
+### 10.6 Monitoring Metrics and Alerts
+
+The proposed monitoring system would track both technical reliability and scheduling workflow integrity.
+
+| Monitoring Area | Proposed Signal | Purpose |
+|---|---|---|
+| AI Extraction | Extraction failures and clarification frequency | Identify input-processing problems |
+| Structured Outputs | Schema validation failures | Detect malformed or incomplete outputs |
+| RAG Retrieval | Missing documents, retrieval errors, and policy versions | Detect policy retrieval problems |
+| Python Validation | Rule failures and processing exceptions | Investigate validation outcomes |
+| Human Review | Pending requests and reviewer decision status | Detect unresolved approvals |
+| Authorization | Unauthorized approval attempts | Detect critical control failures |
+| Workflow Reliability | Failed stages, retries, and duplicate requests | Identify application errors |
+| Performance | Processing duration by component | Identify latency and bottlenecks |
+| Audit Integrity | Missing or inconsistent decision records | Detect accountability gaps |
+
+Monitoring alerts would prioritize events by severity.
+
+**Critical events** would include unauthorized approval attempts, bypassed mandatory validation, or any attempted schedule modification without required authorization.
+
+**High-priority events** could include failures to retrieve authoritative scheduling data, incompatible policy versions, or repeated validation processing errors.
+
+**Operational notifications** could identify requests awaiting clarification, partner confirmation, or human review.
+
+Alert thresholds would be established during implementation and refined using measured baseline data. They would not be presented as achieved performance results in this proposal.
+
+-------------------------------------------------------------
+
+### 10.7 Failure Investigation and Recovery
+
+The proposed system would provide a repeatable process for investigating errors.
+
+When a failure occurs, an authorized developer or reviewer may:
+
+1. Identify the affected request using its reference identifier.
+2. Examine the relevant processing trace.
+3. Determine whether the issue originated in AI extraction, policy retrieval, scheduling data, business rules, or workflow orchestration.
+4. Review the applicable prompt, application, and policy versions.
+5. Reproduce the issue using synthetic or appropriately protected test data.
+6. Document the cause and proposed corrective action.
+7. Test the correction against the evaluation dataset.
+8. Run regression tests before releasing the change.
+
+Requests affected by an unresolved critical error would remain blocked or be routed for manual handling.
+
+The system would not automatically treat a failed AI step as authorization to bypass required validation or human review.
+
+Repeated processing attempts would use request identifiers and state checks to reduce the risk of duplicate decisions or actions.
+
+-------------------------------------------------------------
+
+### 10.8 Privacy, Access Control, and Retention
+
+Observability must not compromise employee privacy or organizational security.
+
+The proposed implementation would comply with data-minimization principles.
+
+Controls would include:
+
+- Avoiding the collection of unnecessary personal information.
+- Masking or pseudonymizing employee identifiers in diagnostic traces.
+- Protecting API keys, credentials, and authentication tokens.
+- Restricting access to traces and audit records according to job responsibilities.
+- Separating development data from production scheduling information.
+- Establishing appropriate log retention and deletion policies.
+- Preventing sensitive scheduling information from entering public repositories.
+- Reviewing external observability services before transmitting organizational data.
+
+Raw employee messages may contain names, dates, schedules, or other sensitive information. They would not be logged by default unless there is an approved operational need and appropriate safeguards are in place.
+
+Audit records needed for authorized accountability would be managed separately from general diagnostic traces.
+
+Public project documentation and examples would continue to use fictional data.
+
+-------------------------------------------------------------
+
+### 10.9 Continuous Monitoring and Improvement
+
+Observability findings would inform the evaluation process described in Section 9.
+
+For example:
+
+- Repeated extraction failures could indicate missing prompt instructions or ambiguous request patterns.
+- Incorrect policy references may indicate outdated documents or retrieval configuration issues.
+- Frequent human corrections could reveal gaps in the extraction schema or in the validation workflow.
+- Increased processing latency may indicate performance bottlenecks.
+- Unexpected approval behavior could expose critical authorization or workflow defects.
+
+Any resulting changes would undergo controlled development, review, and regression testing.
+
+The system would not independently update mandatory scheduling policies or modify approval requirements in response to observed behavior.
+
+The proposed monitoring approach would therefore combine technical traces, operational auditability, human feedback, and repeatable evaluations to support safe, accountable future development.
+
+-------------------------------------------------------------
+
+### 10.10 Observability Limitations
+
+LangSmith and application logs could provide visibility into processing behavior, but they would not guarantee the factual accuracy of AI-generated outputs.
+
+A technically successful model call could still extract an incorrect date, select an inappropriate policy passage, or generate an unsupported explanation.
+
+Similarly, a successful Python function call would not guarantee that its configured business rules accurately reflect current organizational requirements.
+
+Observability would need to operate alongside deterministic tests, expert-reviewed policies, authorization controls, and ongoing evaluations.
+
+Before production deployment, monitoring coverage, alerting responsibilities, data protection requirements, and incident-response procedures would need to be reviewed and approved by the relevant stakeholders.
+
+The goal would be to make potential failures visible, understandable, and actionable, rather than assuming the AI system would always operate correctly.
+
+-------------------------------------------------------------
