@@ -10,8 +10,25 @@ Technology Focus: Python, OpenAI API, Structured Outputs, Retrieval-Augmented Ge
 
 -------------------------------------------------------------
 
+## Table of Contents
+
+1. [Project Overview](#1-project-overview)
+2. [Problem Statement](#2-problem-statement)
+3. [Project Objectives](#3-project-objectives)
+4. [Project Scope and Assumptions](#4-project-scope-and-assumptions)
+5. [Target Users and Stakeholders](#5-target-users-and-stakeholders)
+6. [Proposed Core Workflow](#6-proposed-core-workflow)
+7. [Technical Architecture and Implementation Plan](#7-technical-architecture-and-implementation-plan)
+8. [Example Prompts and Expected Structured Outputs](#8-example-prompts-and-expected-structured-outputs)
+9. [Evaluation Strategy and Success Metrics](#9-evaluation-strategy-and-success-metrics)
+10. [Observability and Monitoring](#10-observability-and-monitoring)
+11. [Security, Risks, Limitations, and Guardrails](#11-security-risks-limitations-and-guardrails)
+12. [Future Improvements and Conclusion](#12-future-improvements-and-conclusion)
+
+-------------------------------------------------------------
+
 ## 1. Project Overview
-The Yes Engine is a proposed AI-assisted system for validating and approving shift swaps, designed to simplify employee scheduling requests, maintain operational compliance, reduce administrative workload, and preserve human oversight.
+The Yes Engine is a proposed AI-assisted shift-swap validation and decision-support system designed to simplify employee scheduling requests, maintain operational compliance, reduce administrative workload, and preserve human oversight.
 
 The project builds on an earlier workflow automation initiative I explored in my professional environment, where I investigated using Microsoft Forms, Excel, and Power Automate to streamline employee shift exchanges.
 
@@ -97,6 +114,7 @@ The proposed interface would allow employees to:
 - Confirm that both employees have agreed to the proposed swap.
 - Provide missing information when prompted.
 - Receive updates regarding the status of their request.
+- The system would require independent confirmation from the swap partner before forwarding the request for final approval.
 
 -------------------------------------------------------------
 
@@ -210,6 +228,8 @@ The reviewer could:
 - Escalate an exception for further review.
 
 The system would pause execution until the required human decision is made.
+
+If a reviewer modifies employee information, shift assignments, or other details affecting scheduling compliance, the system would rerun the applicable validation checks before allowing final approval.
 
 -------------------------------------------------------------
 
