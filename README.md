@@ -114,7 +114,8 @@ The proposed interface would allow employees to:
 - Confirm that both employees have agreed to the proposed swap.
 - Provide missing information when prompted.
 - Receive updates regarding the status of their request.
-- The system would require independent confirmation from the swap partner before forwarding the request for final approval.
+
+The system would require independent confirmation from the swap partner before forwarding the request for final approval.
 
 -------------------------------------------------------------
 
@@ -574,7 +575,7 @@ Authenticated requester ID: EMP-001
 Employee message:
 "Hi! I'd like to swap my Friday, November 6, 2026,
 shift from 9 AM to 5 PM with Avery Chen's shift from
-noon to 8 PM. We already talked and agreed to switch."
+noon to 8 PM. We already discussed and agreed to switch shifts."
 ```
 
 **Expected Structured JSON Output**
@@ -957,7 +958,7 @@ Test cases would verify that:
 - Approval decisions and relevant timestamps are recorded.
 - System errors do not bypass the human approval checkpoint.
 
-The central human-oversight metric would be the percentage of finalized requests with a valid, authorized approval record.
+The central human-oversight metric would be the percentage of finalized requests with a valid, authorized reviewer decision record.
 
 The proposed target would be 100%.
 
@@ -979,7 +980,7 @@ The following targets are preliminary design goals, not measured system results.
 | Unauthorized final approvals | 0 | Critical |
 | Revalidation after compliance-relevant corrections | 100% | Critical |
 | Relevant policy retrieval | At least 90% on the evaluation dataset | High |
-| Human approval records for finalized requests | 100% | Critical |
+| Authorized reviewer decision records for finalized requests | 100% | Critical |
 
 These thresholds would require review and adjustment by technical and operational stakeholders prior to production use.
 
@@ -1160,7 +1161,7 @@ The following fictional record illustrates how a processing event could be repre
   "human_approval_status": "pending",
   "schedule_updated": false,
   "duration_ms": 145,
-  "timestamp": "2026-11-06T14:30:00Z"
+  "timestamp": "2026-10-29T14:30:00Z"
 }
 ```
 
