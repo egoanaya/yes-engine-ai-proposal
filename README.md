@@ -1265,3 +1265,176 @@ Before production deployment, monitoring coverage, alerting responsibilities, da
 The goal would be to make potential failures visible, understandable, and actionable, rather than assuming the AI system would always operate correctly.
 
 -------------------------------------------------------------
+
+## 11. Security, Risks, Limitations, and Guardrails
+
+### 11.1 Responsible AI and Security Overview
+
+The proposed Yes Engine would process information on employee schedules, shift assignments, policy requirements, and approval decisions.
+
+Although the initial project would use only fictional data, a future production implementation would require safeguards to protect employee privacy, organizational systems, and the integrity of scheduling decisions.
+
+The central design principle is that AI provides assistance rather than granting unrestricted authority.
+
+LLMs would interpret natural-language requests and help explain verified results. Deterministic Python functions would evaluate configured scheduling constraints, while authorized human reviewers would retain responsibility for final decisions.
+
+Security controls would be implemented throughout the workflow rather than added only after development is complete.
+
+-------------------------------------------------------------
+
+### 11.2 Data Privacy and Confidentiality
+
+Employee scheduling information may contain personal or operationally sensitive details.
+
+The proposed system would adhere to data-minimization principles and limit information collection to what is necessary to process a request.
+
+Security measures would include:
+
+- Using synthetic records during development and public demonstrations.
+- Restricting access to employee schedules according to assigned responsibilities.
+- Avoiding unnecessary transmission of personal information to external AI services.
+- Masking sensitive information in diagnostic logs and observability traces.
+- Encrypting sensitive data in transit and at rest where applicable.
+- Establishing approved retention and deletion procedures.
+- Prohibiting credentials, API keys, and confidential documents from being committed to GitHub.
+
+Any future use of employee records would require organizational authorization and a formal privacy and security assessment.
+
+-------------------------------------------------------------
+
+### 11.3 Authentication and Authorization
+
+A production application would need to establish each user's identity and permissions.
+
+The system would distinguish among employees, authorized reviewers, Workforce Management professionals, and technical administrators.
+
+Employees would be permitted to submit and track their own requests but would not be authorized to approve scheduling changes.
+
+Reviewers would receive only the permissions necessary for their assigned responsibilities.
+
+Approval and schedule-modification permissions would be verified by trusted application logic, not inferred from an LLM response.
+
+The system would enforce least-privilege access and log significant authorization events for auditing.
+
+-------------------------------------------------------------
+
+### 11.4 AI Guardrails and Prompt Injection Protection
+
+The system would treat natural-language requests and retrieved documents as untrusted input.
+
+An employee message or a retrieved document could contain misleading instructions, unsupported policy statements, or attempts to manipulate the AI workflow.
+
+The proposed system would implement the following safeguards:
+
+1. Separate trusted system instructions from employee messages and retrieved text.
+2. Use predefined structured-output schemas.
+3. Validate extracted information against authoritative scheduling records.
+4. Reject unsupported employee identifiers, shift assignments, and policy claims.
+5. Prevent LLM-generated text from directly modifying business-rule configurations.
+6. Require deterministic compliance checks before human review.
+7. Enforce approval permissions through application logic.
+8. Block production scheduling changes unless all required checks and authorizations succeed.
+
+Retrieved policy passages would serve as reference material, not as executable instructions.
+
+An LLM-generated recommendation would never be considered proof that a scheduling request is compliant or authorized.
+
+-------------------------------------------------------------
+
+### 11.5 Operational Risks and Mitigation Strategies
+
+The following table summarizes the major implementation risks.
+
+| Risk | Potential Impact | Proposed Mitigation |
+|---|---|---|
+| Incorrect AI extraction | Wrong shift, date, or employee selected | Structured outputs, clarification, and schedule verification |
+| LLM hallucinations | Unsupported information or policy explanations | Grounding, schema validation, and expert-reviewed references |
+| Outdated policies | Incorrect eligibility recommendations | Policy versioning and controlled rule configuration |
+| Incorrect hour calculations | Overtime or scheduling compliance failures | Deterministic Python tests and boundary-case evaluations |
+| Missing partner confirmation | Unauthorized shift exchange | Independent confirmation before approval |
+| Unauthorized user actions | Improper scheduling decisions | Authentication, role-based access, and audit records |
+| Prompt injection | Manipulated instructions or misleading results | Treat external input as untrusted and isolate decision authority |
+| Service outages | Delayed or incomplete request processing | Error handling, pending states, and manual fallback |
+| Sensitive data exposure | Employee privacy or organizational security risks | Access controls, data minimization, and protected logs |
+| Duplicate processing | Repeated approvals or unintended actions | Unique request identifiers and workflow state checks |
+
+These mitigations would require implementation, testing, and stakeholder review before the system could be deemed production-ready.
+
+-------------------------------------------------------------
+
+### 11.6 Scheduling and Policy Limitations
+
+Real scheduling environments may contain rules that are more complex than those in a simulated prototype.
+
+Examples could include:
+
+- Different workweek boundaries.
+- Overnight or cross-midnight shifts.
+- Cross-week exchanges and overtime calculations.
+- Unpaid meal breaks and other scheduling deductions.
+- Role qualifications and staffing requirements.
+- Employee-specific restrictions.
+- Policy exceptions and changing organizational procedures.
+- Conflicting or incomplete scheduling records.
+
+The initial proposal would not claim to resolve every possible scheduling scenario.
+
+Unsupported scenarios would be identified and routed for clarification or authorized review rather than automatically classified as eligible.
+
+Qualified Workforce Management stakeholders would need to establish actual compliance thresholds and exception procedures.
+
+-------------------------------------------------------------
+
+### 11.7 AI and Technical Limitations
+
+LLMs are probabilistic systems and may produce incorrect or inconsistent outputs even with carefully designed prompts.
+
+Pydantic can verify the structure and data types of an output, but it cannot independently determine whether the extracted information is factually correct.
+
+RAG can improve access to relevant documentation, but it cannot guarantee that every retrieved passage is applicable, current, or authoritative.
+
+Similarly, deterministic Python calculations are only as reliable as their input records, the implemented logic, and the configured business rules.
+
+The system would therefore require layered verification rather than relying on a single technology.
+
+Additional considerations would include API costs, processing latency, service availability, model updates, and maintenance responsibilities.
+
+-------------------------------------------------------------
+
+### 11.8 Human Accountability and Deployment Boundaries
+
+The Yes Engine would retain a mandatory human-in-the-loop checkpoint before finalizing a shift-swap decision.
+
+An eligible validation result would not constitute final approval.
+
+Any reviewer correction affecting scheduling compliance would trigger revalidation.
+
+Mandatory-rule failures, missing authoritative data, or unresolved policy conflicts would block automatic approval.
+
+A future production deployment would require:
+
+- Verified and approved business rules.
+- Appropriate identity and access controls.
+- Security and privacy review.
+- Stakeholder-approved evaluation results.
+- Defined operational ownership.
+- Testing of failure recovery and exception handling.
+- Explicit authorization for external integrations.
+- A documented manual fallback procedure.
+
+No production Workforce Management integrations or live scheduling modifications are included in this final project.
+
+-------------------------------------------------------------
+
+### 11.9 Security and Risk Management Summary
+
+The Yes Engine proposal emphasizes that responsible AI automation requires more than accurate language processing alone.
+
+A reliable implementation would combine structured extraction, independently verified scheduling data, deterministic calculations, relevant policy references, security controls, observability, and accountable human decision-making.
+
+The resulting system would be designed to reduce repetitive administrative work without compromising the safeguards required for employee scheduling and operational compliance.
+
+These principles would guide any future development beyond the scope of the comprehensive project proposal.
+
+-------------------------------------------------------------
+
